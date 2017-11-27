@@ -34,10 +34,12 @@
 #
 class openshift::role::ansible_master (
   $host_groups,
+  $playbooks_install_method = 'git',
   $playbooks_source = 'https://github.com/openshift/openshift-ansible.git',
-  $playbooks_version = 'master',
+  $playbooks_version = undef,
 ) {
   validate_hash($host_groups)
+  validate_re($playbooks_install_method, '^(git|package)$')
 
   include ::openshift::util::cacert
 
@@ -51,12 +53,18 @@ class openshift::role::ansible_master (
   ])
 
   # Get OpenShift Ansible playbooks
-  vcsrepo { 'openshift-ansible':
-    ensure   => present,
-    path     => '/usr/share/openshift-ansible',
-    provider => git,
-    revision => $playbooks_version,
-    source   => $playbooks_source,
+  if $playbooks_install_method = 'git' {
+    vcsrepo { 'openshift-ansible':
+      ensure   => present,
+      path     => '/usr/share/openshift-ansible',
+      provider => 'git',
+      revision => $playbooks_version,
+      source   => $playbooks_source,
+    }
+  } else {
+    package { 'openshift-ansible-playbooks':
+      ensure => $playbooks_version,
+    }
   }
 
   create_resources('ini_setting', prefix({
