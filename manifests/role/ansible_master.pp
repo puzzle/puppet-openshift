@@ -53,7 +53,7 @@ class openshift::role::ansible_master (
   ])
 
   # Get OpenShift Ansible playbooks
-  if $playbooks_install_method = 'git' {
+  if $playbooks_install_method == 'git' {
     vcsrepo { 'openshift-ansible':
       ensure   => present,
       path     => '/usr/share/openshift-ansible',
